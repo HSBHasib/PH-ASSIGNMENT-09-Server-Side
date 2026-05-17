@@ -36,6 +36,12 @@ async function run() {
         res.send(result);
     })
 
+    // Get top 3 doctors data based on their 'RATING' form mongoDB.
+    app.get("/topDoctors", async (req, res) => {
+        const result = await doctorsCollection.find().sort({rating: -1}).limit(3).toArray();
+        res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

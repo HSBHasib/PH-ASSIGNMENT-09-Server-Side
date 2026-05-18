@@ -50,18 +50,42 @@ async function run() {
     })
 
 
+    // Get doctor appointments based on patientId
     app.get("/appointments/:patientId", async (req, res) => {
       const { patientId } = req.params;
       const result = await AppointmentsCollention.find({ patientId }).toArray();
       res.send(result);
     });
 
+    // Add Appointments at mongoDB
     app.post("/appointments", async (req, res) => {
       const appointments = req.body;
-      console.log('bookingAppointment data fron backend - ',appointments)
       const result = await AppointmentsCollention.insertOne(appointments);
       res.send(result);
     });
+
+
+    // Update Appointment Data
+    app.patch("/appointments/:id", async (req, res) => {
+      const { id } = req.params;
+      const updateData = req.body;
+
+      const result = await AppointmentsCollention.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData },
+      );
+      res.send(result);
+    });
+
+
+    // Delete Appointments based on individual patient on their appointment
+    app.delete("/appointments/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await AppointmentsCollention.deleteOne({_id: new ObjectId(id)});
+      res.send(result);
+    })
+
+
 
 
     // Send a ping to confirm a successful connection

@@ -28,7 +28,7 @@ async function run() {
 
     const myDB = client.db("docAppoint");
     const doctorsCollection = myDB.collection("doctorsdata");
-    // const patientCollention = myDB.collection("patien");
+    const AppointmentsCollention = myDB.collection("appointments");
 
     // Get all doctors data from mongoDB.
     app.get("/doctors", async (req, res) => {
@@ -48,6 +48,20 @@ async function run() {
         const result = await doctorsCollection.find().sort({rating: -1}).limit(3).toArray();
         res.send(result);
     })
+
+
+    app.get("/appointments/:patientId", async (req, res) => {
+      const { patientId } = req.params;
+      const result = await AppointmentsCollention.find({ patientId }).toArray();
+      res.send(result);
+    });
+
+    app.post("/appointments", async (req, res) => {
+      const appointments = req.body;
+      console.log('bookingAppointment data fron backend - ',appointments)
+      const result = await AppointmentsCollention.insertOne(appointments);
+      res.send(result);
+    });
 
 
     // Send a ping to confirm a successful connection

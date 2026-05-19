@@ -60,15 +60,9 @@ async function run() {
     const myDB = client.db("docAppoint");
     const doctorsCollection = myDB.collection("doctorsdata");
     const AppointmentsCollention = myDB.collection("appointments");
+    const patientReviewCollection = myDB.collection("patientreview");
 
-    // // Get all doctors data from mongoDB.
-    // app.get("/doctors", async (req, res) => {
-    //     const result = await doctorsCollection.find().toArray();
-    //     res.send(result);
-    // })
-
-    // ----------------------------------------------------------------------
-
+    // Get all doctors data from mongoDB and filter doctor data by search their name and specialty.
     app.get("/doctors", async (req, res) => {
       const { search } = req.query;
       let query = {};
@@ -84,16 +78,10 @@ async function run() {
         });
       }
 
-      const result = await query.toArray();
-      
-      
-      console.log('search result access from backend - ', result)
-      
-
+      const result = await query.toArray();      
       res.send(result);
     });
 
-    // ----------------------------------------------------------------------
 
     // Get indivisual doctors data from mongoDB.
     app.get("/doctors/:id", varifyToken, async (req, res) => {
@@ -112,7 +100,7 @@ async function run() {
       res.send(result);
     });
 
-    // Get doctor appointments based on patientId
+    // Get doctor appointments based on patientId.
     app.get("/appointments/:patientId", varifyToken, async (req, res) => {
       const { patientId } = req.params;
       const result = await AppointmentsCollention.find({ patientId }).toArray();
@@ -146,6 +134,14 @@ async function run() {
       });
       res.send(result);
     });
+
+
+    // Get Patient Review Data From MongoDB
+    app.get('/patientreview', async (req, res) => {
+      const result = await patientReviewCollection.find().toArray();
+      res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

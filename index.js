@@ -7,7 +7,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 
 
-const port = process.env.PORT;
+const port = process.env.PORT || 8000;
 const uri = process.env.MONGODB_URL;
 
 
@@ -46,6 +46,7 @@ const varifyToken = async (req, res, next) => {
   );
 
   try { const { payload } = await jwtVerify(token, JWKS)
+    console.log('from backend payload data - ', payload);
     next()
   } catch (error) {
     return res.status(403).json({
@@ -71,7 +72,7 @@ async function run() {
     })
 
     // Get all doctors data from mongoDB.
-    app.get("/doctors/:id", async (req, res) => {
+    app.get("/doctors/:id", varifyToken, async (req, res) => {
         const {id} = req.params;
         const result = await doctorsCollection.findOne({_id: new ObjectId(id)});
         res.send(result);
@@ -85,14 +86,14 @@ async function run() {
 
 
     // Get doctor appointments based on patientId
-    app.get("/appointments/:patientId", async (req, res) => {
+    app.get("/appointments/:patientId", varifyToken, async (req, res) => {
       const { patientId } = req.params;
       const result = await AppointmentsCollention.find({ patientId }).toArray();
       res.send(result);
     });
 
     // Add Appointments at mongoDB
-    app.post("/appointments", async (req, res) => {
+    app.post("/appointments", varifyToken, async (req, res) => {
       const appointments = req.body;
       const result = await AppointmentsCollention.insertOne(appointments);
       res.send(result);
@@ -100,7 +101,7 @@ async function run() {
 
 
     // Update Appointment Data
-    app.patch("/appointments/:id", async (req, res) => {
+    app.patch("/appointments/:id", varifyToken, async (req, res) => {
       const { id } = req.params;
       const updateData = req.body;
 
@@ -113,7 +114,7 @@ async function run() {
 
 
     // Delete Appointments based on individual patient on their appointment
-    app.delete("/appointments/:id", async (req, res) => {
+    app.delete("/appointments/:id", varifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await AppointmentsCollention.deleteOne({_id: new ObjectId(id)});
       res.send(result);

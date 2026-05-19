@@ -1,8 +1,11 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-require('dotenv').config()
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
+
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
+
 
 const port = process.env.PORT;
 const uri = process.env.MONGODB_URL;
@@ -20,6 +23,37 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+
+// Verify the Token
+const varifyToken = async (req, res, next) => {
+  const authHeader = req?.headers?.authorization;
+  if (!authHeader) {
+    return res.status(401).json({
+      message: "unauthorized",
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({
+      message: "unauthorized",
+    });
+  }
+
+  const JWKS = createRemoteJWKSet(
+    new URL(`${process.env.CLIENT_URL}/api/auth/jwks`),
+  );
+
+  try { const { payload } = await jwtVerify(token, JWKS)
+    next()
+  } catch (error) {
+    return res.status(403).json({
+      message: "Invalid or Expired Token"
+    });
+  }
+};
+
 
 async function run() {
   try {
@@ -84,8 +118,6 @@ async function run() {
       const result = await AppointmentsCollention.deleteOne({_id: new ObjectId(id)});
       res.send(result);
     })
-
-
 
 
     // Send a ping to confirm a successful connection
